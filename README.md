@@ -76,7 +76,7 @@ services:
     - "5000:5000"
     environment:
       REGISTRY_AUTH: token
-      REGISTRY_AUTH_TOKEN_REALM: http://localhost:5011/v2/token
+      REGISTRY_AUTH_TOKEN_REALM: https://example.org/v2/token
       REGISTRY_AUTH_TOKEN_SERVICE: Authentication
       REGISTRY_AUTH_TOKEN_ISSUER: example issuer # match the issuer in the config file
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /mnt/local/certs/RootCA.crt

@@ -1,0 +1,20 @@
+# vscode
+.vscode
+.venv
+
+# python
+__pycache__
+*.py[cod]
+
+# docker
+docker-compose.yml
+
+# config files
+config/config.py
+config/users.json
+config/repositories.json
+config/uwsgi.ini
+
+# directories
+certs
+registry-data

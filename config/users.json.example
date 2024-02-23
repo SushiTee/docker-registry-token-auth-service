@@ -1,0 +1,14 @@
+{
+    "foo": {
+        "pass_hash": "$2b$12$whwM/NkRZw3lrfLnjatOI.gFydDicf86oE6oKWHu0UJN.3IerBWc2",
+        "repositories": {
+            "some-image" : ["pull"]
+        }
+    },
+    "bar": {
+        "pass_hash": "$2b$12$x/1NuYD7a9gpmPjH6VNFBuw.BPuVkwIZ/EN0FYV5VurMci8E.ZNRW",
+        "repositories": {
+            "*" : ["push", "pull"]
+        }
+    }
+}

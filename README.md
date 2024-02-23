@@ -44,6 +44,8 @@ cp config/uwsgi.ini.example config/uwsgi.ini
 
 Edit those files accordingly. If you set `backlist` to `true` in _repositories.json_, the repositories listed in the `repositories` array will not be accessible without authentication. If you set `blacklist` to `false`, it will work as a whitelist and only the repositories listed in the `repositories` array will be accessible without authentication.
 
+You cannot give only `push` access. If you want to give users `push` access you always have to put `pull` as well.
+
 The passwords for the users in _users.json_ are hashed with _bcrypt_ and can be generated with the following command:
 
 ```bash

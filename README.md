@@ -9,7 +9,7 @@ This little service has the following capabilities:
 * generate JWT tokens for the Docker registry
 * restrict access to the registry to authenticated users
 * select whether a user can push or pull images by a simple json configuration file (_config/users.json_)
-* whitelist/blacklist repositories for public access by a simple json configuration file (_config/repositories.json_)
+* whitelist/blacklist repositories for public access (pull access only) by a simple json configuration file (_config/repositories.json_)
 
 # Configuration
 

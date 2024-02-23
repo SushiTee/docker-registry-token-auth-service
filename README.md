@@ -209,7 +209,7 @@ docker pull example.org/some-image:latest
 You can use the [registry API](https://distribution.github.io/distribution/spec/api/) to get information about the available repositories as well. Here is an example:
 
 ```bash
-TOKEN=$(curl -s -X GET -u foo https://example.org/v2/token\?account\=foo\&service\=Authentication\&scope\=registry:catalog:\* | jq -r '.token')
+TOKEN=$(curl -s -X GET https://example.org/v2/token\?account\=anon\&service\=Authentication\&scope\=registry:catalog:\* | jq -r '.token')
 curl -H "Authorization: Bearer $TOKEN" https://example.org/v2/_catalog
 ```
 
@@ -217,4 +217,17 @@ The output should look like this:
 
 ```json
 {"repositories":["some-image"]}
+```
+
+Now to list the tags of the repository... of course you need another token for another scope:
+
+```bash
+TOKEN=$(curl -s -X GET https://example.org/v2/token\?account\=anon\&service\=Authentication\&scope\=repository:some-image:pull | jq -r '.token')
+curl -H "Authorization: Bearer $TOKEN" https://example.org/v2/some-image/tags/list
+```
+
+This will print:
+
+```json
+{"name":"some-image","tags":["latest"]}
 ```

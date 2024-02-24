@@ -61,8 +61,6 @@ docker run --rm -it httpd htpasswd -nbB username password
 
 In case you wonder: The passwords in the example are `foo` and `bar`.
 
-It is important that the _uwsgi.ini_ contains `http = 0.0.0.0:5011` as the network will not work if it does not bound like this.
-
 ## Prepare communication through a socket
 
 In this example the token service and the registry are using unix sockets to communicate:
@@ -98,8 +96,6 @@ services:
   registry:
     image: registry:2
     user: "33:33" # set the user to the same as used by the reverse proxy
-    ports:
-    - "5000:5000"
     environment:
       REGISTRY_AUTH: token
       REGISTRY_AUTH_TOKEN_REALM: https://example.org/v2/token

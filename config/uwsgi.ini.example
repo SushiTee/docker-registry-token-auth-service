@@ -5,4 +5,6 @@ master = true
 processes = 4
 threads = 2
 
-http = 0.0.0.0:5011
+socket = /app/socket/registry-auth-service.sock
+uid = 33 # <--- This user id should be the same as the user running the reverse proxy
+gid = 33 # <--- This group id should be the same as the group running the reverse proxy

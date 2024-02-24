@@ -16,7 +16,6 @@ This little service has the following capabilities:
 The service is supposed to be running in combination with a Docker registry. Therefore the following requirements are necessary:
 
 * Docker including docker compose
-* **Firewall rules which prevents the used ports by the registry and the token service from being accessed from the internet**
 * A reverse proxy which handles SSL and forwards requests to the registry and the token service
 
 In the next chapters example files will be created which are required to successfully run the service. This includes the needed certificates, the configuration files and the _docker-compose.yml_ file.
@@ -64,6 +63,30 @@ In case you wonder: The passwords in the example are `foo` and `bar`.
 
 It is important that the _uwsgi.ini_ contains `http = 0.0.0.0:5011` as the network will not work if it does not bound like this.
 
+## Prepare communication through a socket
+
+In this example the token service and the registry are using unix sockets to communicate:
+
+* the token service listens on _/var/www/upstream-sockets/registry-auth-service.sock_
+* the registry listens on _/var/www/upstream-sockets/docker-registry.sock_
+
+Since the reverse proxy is accessing the registry and the token service through the sockets, the user and group of the sockets must be the same as the user and group of the reverse proxy. In this example, the user and group are _www-data_. Create the directory and set the permissions: 
+
+```bash
+mkdir -p /var/www/upstream-sockets
+chown -R www-data:www-data /var/www/upstream-sockets
+```
+
+_Since in my example the reverse proxy is not running inside a container, the directory is created in a place where it actually can be accessed by the reverse proxy._
+
+The services create the socket files when they are started. This means that the services must run using the correct user. For the token service, the user and group are set in the _uwsgi.ini_ file. For the registry, the user and group are set in the _docker-compose.yml_ file which is described in the next chapter.
+
+Both services use certificates to sign and verify the tokens. Those certificates must be accessible by the services as well. So change the permissions of the certificates:
+
+```bash
+chown -R www-data:www-data certs
+```
+
 ## Create the docker-compose file
 
 The _docker-compose.yml_ file starts the token service and the registry. Here is an example fitting the previous configuration:
@@ -74,6 +97,7 @@ version: '3'
 services:
   registry:
     image: registry:2
+    user: "33:33" # set the user to the same as used by the reverse proxy
     ports:
     - "5000:5000"
     environment:
@@ -83,19 +107,20 @@ services:
       REGISTRY_AUTH_TOKEN_ISSUER: example issuer # match the issuer in the config file
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /mnt/local/certs/RootCA.crt
       REGISTRY_HTTP_SECRET: iru7cBDFI4CgqTmjz4n0Z+YkQHQOAxEX # generate your own (eg. with 'openssl rand -base64 24')
+      REGISTRY_HTTP_ADDR: /mnt/local/socket/docker-registry.sock
+      REGISTRY_HTTP_NET: unix
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry-data
     volumes:
       - ./certs/RootCA.crt:/mnt/local/certs/RootCA.crt
+      - /var/www/upstream-sockets:/mnt/local/socket
       - ./registry-data:/registry-data
     restart: always
 
   auth-server:
     build:
       context: .
-    user: "1000"  # Set the user ID for running the container
-    ports:
-      - "5011:5011" # Match config which is mounted below
     volumes:
+      - /var/www/upstream-sockets:/app/socket  # Mount socket from host to container
       - ./config:/app/config  # Mount config files from host to container
       - ./certs/RootCA.key:/app/certs/RootCA.key  # Mount RootCA from host to container
     restart: always
@@ -109,11 +134,11 @@ You can of course use any reverse proxy you like. In this example, _nginx_ is us
 
 ```
 upstream docker-registry {
-    server localhost:5000;
+    server unix:///var/www/upstream-sockets/docker-registry.sock;
 }
 
 upstream docker-auth {
-    server localhost:5011;
+    server unix:///var/www/upstream-sockets/registry-auth-service.sock;
 }
 
 map $upstream_http_docker_distribution_api_version $docker_distribution_api_version {
@@ -159,13 +184,8 @@ server {
     }
 
     location /v2/token {
-        proxy_pass                          http://docker-auth;
-        proxy_set_header  Host              $http_host;   # required for docker client's sake
-        proxy_set_header  X-Real-IP         $remote_addr; # pass on real client's IP
-        proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header  X-Forwarded-Proto $scheme;
-        proxy_set_header  Authorization     $http_authorization;
-        proxy_read_timeout                  900;
+        uwsgi_pass docker-auth;
+        include uwsgi_params;
     }
 }
 ```

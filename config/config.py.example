@@ -2,5 +2,5 @@
 
 AUDIENCE = 'example.org' # should be the domain name of the registry
 ISSUER = 'example issuer' # should be the name of the service. it must match the registry's issuer
-KEY_PATH = '/path/to/certs/RootCA.key'
+KEY_PATH = '/app/certs/RootCA.key'
 PORT = 5011 # must match the port of REGISTRY_AUTH_TOKEN_REALM in the registry's config
